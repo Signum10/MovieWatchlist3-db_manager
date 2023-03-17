@@ -5,7 +5,7 @@ import gzip
 import json
 from io import BytesIO
 
-categories = {
+CATEGORIES = {
     'Movies': 'movie',
     'TV Series': 'tv_series',
     'People': 'person',
@@ -16,7 +16,7 @@ categories = {
 }
 
 def get_category_ids(category, year, month, day):
-    url = f"http://files.tmdb.org/p/exports/{categories[category]}_ids_{month:02}_{day:02}_{year:04}.json.gz"
+    url = f"http://files.tmdb.org/p/exports/{CATEGORIES[category]}_ids_{month:02}_{day:02}_{year:04}.json.gz"
     ids = {}
 
     print(f'Downloading, decompressing and parsing {url}')
