@@ -23,6 +23,14 @@ def get(path, **kwargs):
     
     return json.loads(response.read())
 
+def get_image(base_url, file_size, file_path):
+    url = f"{base_url}{file_size}{file_path}"
+
+    print(f'Fetching image {url}')
+    response = urllib.request.urlopen(url)
+    
+    return response.read()
+
 # https://developers.themoviedb.org/3/configuration/get-api-configuration
 def get_api_configuration():
     return get(f'configuration')
