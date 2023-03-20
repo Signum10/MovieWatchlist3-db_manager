@@ -25,5 +25,5 @@ def get_category_ids(category, year, month, day):
             json_data = json.loads(line)
             ids[json_data['id']] = {k: v for k, v in json_data.items() if k != 'id'}
 
-    print('Done')
+    print(f'Done, parsed {len(ids.keys())} ids')
     return ids

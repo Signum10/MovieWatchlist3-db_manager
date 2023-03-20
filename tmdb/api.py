@@ -2,19 +2,26 @@
 
 import urllib.parse
 import urllib.request
+import json
 from decouple import config
 
-API_READ_ACCESS_TOKEN = config("API_READ_ACCESS_TOKEN")
-
-def get(path, path_params=None, **kwargs):
+def get(path, **kwargs):
     url = f"https://api.themoviedb.org/3/{path}"
 
     if kwargs:
         url += "?" + '&'.join([f"{k}={v}" for k, v in kwargs.items()])
 
     url = urllib.parse.quote(url, safe=':/?&=')
+    headers = {
+        'Authorization': f'Bearer {config("API_READ_ACCESS_TOKEN")}',
+        'Content-Type': 'application/json;charset=utf-8'
+    }
 
-    print(url)
+    print(f'API request for {url}')
+    response = urllib.request.urlopen(urllib.request.Request(url, None, headers))
+    print(f'API request returned {response.status} {response.reason}')
+    
+    return json.loads(response.read())
 
 # https://developers.themoviedb.org/3/configuration/get-api-configuration
 def get_api_configuration():
