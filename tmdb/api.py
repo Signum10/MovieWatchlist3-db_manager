@@ -67,7 +67,3 @@ def get_tv_season_details(tv_id, season_number, **kwargs):
 # https://developers.themoviedb.org/3/tv-episodes/get-tv-episode-details
 def get_tv_episode_details(tv_id, season_number, episode_number, **kwargs):
     return get(f'tv/{tv_id}/season/{season_number}/episode/{episode_number}', **kwargs)
-
-i = get_image('https://image.tmdb.org/t/p/', 'w500', '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg')
-
-
