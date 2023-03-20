@@ -17,7 +17,7 @@ def get(path, **kwargs):
         'Content-Type': 'application/json;charset=utf-8'
     }
 
-    print(f'API request for {url}')
+    print(f'API request {url}')
     response = urllib.request.urlopen(urllib.request.Request(url, None, headers))
     print(f'API request returned {response.status} {response.reason}')
     
@@ -26,8 +26,9 @@ def get(path, **kwargs):
 def get_image(base_url, file_size, file_path):
     url = f"{base_url}{file_size}{file_path}"
 
-    print(f'Fetching image {url}')
+    print(f'Fetch image {url}')
     response = urllib.request.urlopen(url)
+    print(f'Fetch image returned {response.status} {response.reason}')
     
     return response.read()
 
@@ -66,3 +67,7 @@ def get_tv_season_details(tv_id, season_number, **kwargs):
 # https://developers.themoviedb.org/3/tv-episodes/get-tv-episode-details
 def get_tv_episode_details(tv_id, season_number, episode_number, **kwargs):
     return get(f'tv/{tv_id}/season/{season_number}/episode/{episode_number}', **kwargs)
+
+i = get_image('https://image.tmdb.org/t/p/', 'w500', '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg')
+
+
