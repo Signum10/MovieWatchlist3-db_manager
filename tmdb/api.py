@@ -33,37 +33,41 @@ def get_image(base_url, file_size, file_path):
     return response.read()
 
 # https://developers.themoviedb.org/3/configuration/get-api-configuration
-def get_api_configuration():
+def get_configuration():
     return get(f'configuration')
 
 # https://developers.themoviedb.org/3/genres/get-movie-list
-def get_movie_genres(**kwargs):
+def get_genre_movie_list(**kwargs):
     return get(f'genre/movie/list', **kwargs)
 
 # https://developers.themoviedb.org/3/genres/get-tv-list
-def get_tv_genres(**kwargs):
+def get_genre_tv_list(**kwargs):
     return get(f'genre/tv/list', **kwargs)
 
 # https://developers.themoviedb.org/3/changes/get-movie-change-list
-def get_movie_change_list(**kwargs):
+def get_movie_changes(**kwargs):
     return get(f'movie/changes', **kwargs)
 
 # https://developers.themoviedb.org/3/changes/get-tv-change-list
-def get_tv_change_list(**kwargs):
+def get_tv_changes(**kwargs):
     return get(f'tv/changes', **kwargs)
 
 # https://developers.themoviedb.org/3/movies/get-movie-details
-def get_movie_details(movie_id, **kwargs):
+def get_movie(movie_id, **kwargs):
     return get(f'movie/{movie_id}', **kwargs)
 
 # https://developers.themoviedb.org/3/tv/get-tv-details
-def get_tv_details(tv_id, **kwargs):
+def get_tv(tv_id, **kwargs):
     return get(f'tv/{tv_id}', **kwargs)
 
 # https://developers.themoviedb.org/3/tv-seasons/get-tv-season-details
-def get_tv_season_details(tv_id, season_number, **kwargs):
+def get_season(tv_id, season_number, **kwargs):
     return get(f'tv/{tv_id}/season/{season_number}', **kwargs)
 
 # https://developers.themoviedb.org/3/tv-episodes/get-tv-episode-details
-def get_tv_episode_details(tv_id, season_number, episode_number, **kwargs):
+def get_episode(tv_id, season_number, episode_number, **kwargs):
     return get(f'tv/{tv_id}/season/{season_number}/episode/{episode_number}', **kwargs)
+
+# https://developers.themoviedb.org/3/search/multi-search
+def search_multi(**kwargs):
+    return get(f'/search/multi', **kwargs)
