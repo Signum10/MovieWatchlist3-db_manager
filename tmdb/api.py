@@ -68,6 +68,10 @@ def get_season(tv_id, season_number, **kwargs):
 def get_episode(tv_id, season_number, episode_number, **kwargs):
     return get(f'tv/{tv_id}/season/{season_number}/episode/{episode_number}', **kwargs)
 
-# https://developers.themoviedb.org/3/search/multi-search
-def search_multi(**kwargs):
-    return get(f'/search/multi', **kwargs)
+# https://developers.themoviedb.org/3/search/search-movies
+def search_movie(**kwargs):
+    return get(f'/search/movie', **kwargs)
+
+# https://developers.themoviedb.org/3/search/search-tv-shows
+def search_tv(**kwargs):
+    return get(f'/search/tv', **kwargs)
