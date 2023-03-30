@@ -4,6 +4,6 @@ tmdb = TMDb()
 
 #import pprint
 #with open("log.txt", "w", encoding="utf-8") as f:
-    #pprint.pprint(tmdb.get_tv_full_info(1399), f)
-    #pprint.pprint(tmdb.get_movie_full_info(550), f)
-    #pprint.pprint(tmdb.search_full('thrones'), f)
+    #pprint.pprint(tmdb.get_tv(1399), f)
+    #pprint.pprint(tmdb.get_movie(550), f)
+    #pprint.pprint(tmdb.search('thrones'), f)

@@ -13,16 +13,91 @@ class TMDb:
         if self.IMG_SIZE not in api_config['images']['still_sizes']:
             raise Exception(f'Expected still_sizes to also include {self.IMG_SIZE}')
 
-    def get_images(self, image_paths):
-        images = {}
+    def _get_movie_info(self, data, source):
+        info = {
+            'id': data['id'],
+            'title': data['original_title'],
+            'image_path': data['poster_path'],
+            'description': data['overview'],
+            'release_date': data['release_date'],
+            'popularity': data['popularity'],
+            'vote_average': data['vote_average'],
+            'vote_count': data['vote_count']
+        }
 
-        for image_path in image_paths:
-            if image_path:
-                images[image_path] = api.get_image(self.IMG_BASE_URL, self.IMG_SIZE, image_path)
+        if source == 'details':
+            info.update({
+                'imdb_id': data['imdb_id'],
+                'status': data['status'],
+                'runtime_minutes': data['runtime'],
+                'genre_ids': [entry['id'] for entry in data['genres']]
+            })
+        elif source == 'search':
+            info.update({
+                'genre_ids': data['genre_ids']
+            })
 
-        return images
+        return info
     
-    def get_all_pages(self, method, **kwargs):
+    def _get_tv_info(self, data, source):
+        info = {
+            'id': data['id'],
+            'title': data['original_name'],
+            'image_path': data['poster_path'],
+            'description': data['overview'],
+            'first_air_date': data['first_air_date'],
+            'popularity': data['popularity'],
+            'vote_average': data['vote_average'],
+            'vote_count': data['vote_count']
+        }
+
+        if source == 'details':
+            info.update({
+                'imdb_id': data['external_ids']['imdb_id'],
+                'status': data['status'],
+                'episode_runtime_minutes': data['episode_run_time'][0],
+                'last_air_date': data['last_air_date'],
+                'genre_ids': [entry['id'] for entry in data['genres']],
+                'season_numbers': [entry['season_number'] for entry in data['seasons']]
+            })
+        elif source == 'search':
+            info.update({
+                'genre_ids': data['genre_ids']
+            })
+
+        return info
+    
+    def _get_season_info(self, data, tv_id):
+        info = {
+            'id': data['id'],
+            'tv_id': tv_id,
+            'season_number': data['season_number'],
+            'title': data['name'],
+            'image_path': data['poster_path'],
+            'description': data['overview'],
+            'air_date': data['air_date'],
+            'episode_numbers': [entry['episode_number'] for entry in data['episodes']]
+        }
+
+        return info
+    
+    def _get_episode_info(self, data, season_id):
+        info = {
+            'id': data['id'],
+            'season_id': season_id,
+            'episode_number': data['episode_number'],
+            'imdb_id': data['external_ids']['imdb_id'],
+            'title': data['name'],
+            'image_path': data['still_path'],
+            'description': data['overview'],
+            'air_date': data['air_date'],
+            'vote_average': data['vote_average'],
+            'vote_count': data['vote_count']
+        }
+
+        return info
+
+    def _get_all_pages(self, method, **kwargs):
         results = []
         current_page = 1
         total_pages = 1
@@ -37,6 +112,15 @@ class TMDb:
 
         return results
 
+    def get_images(self, image_paths):
+        images = {}
+
+        for image_path in image_paths:
+            if image_path:
+                images[image_path] = api.get_image(self.IMG_BASE_URL, self.IMG_SIZE, image_path)
+
+        return images
+
     def get_genres(self):
         methods = [api.get_genre_movie_list, api.get_genre_tv_list]
 
@@ -46,147 +130,19 @@ class TMDb:
         methods = [api.get_movie_changes, api.get_tv_changes]
         kwargs = {'start_date': start_date, 'end_date': end_date}
 
-        return [[entry['id'] for entry in self.get_all_pages(method, **kwargs)] for method in methods]
-
-    def get_movie_info(self, movie_id):
-        details = api.get_movie(movie_id)
+        return [[entry['id'] for entry in self._get_all_pages(method, **kwargs)] for method in methods]
+    
+    def get_movie(self, movie_id):
+        return self._get_movie_info(api.get_movie(movie_id), 'details')
         
-        info = {
-            'id': details['id'],
-            'imdb_id': details['imdb_id'],
-            'title': details['original_title'],
-            'image_path': details['poster_path'],
-            'description': details['overview'],
-            'status': details['status'],
-            'release_date': details['release_date'],
-            'runtime_minutes': details['runtime'],
-            'popularity': details['popularity'],
-            'vote_average': details['vote_average'],
-            'vote_count': details['vote_count']
-        }
+    def get_tv(self, tv_id):
+        tv_info = self._get_tv_info(api.get_tv(tv_id, append_to_response='external_ids'), 'details')
+        season_infos = [self._get_season_info(api.get_season(tv_id, season_number), tv_id) for season_number in tv_info['season_numbers']]
+        episode_infos = [self._get_episode_info(api.get_episode(tv_id, season_info['season_number'], episode_number, append_to_response='external_ids'), season_info['id']) for season_info in season_infos for episode_number in season_info['episode_numbers']]
 
-        return info
-    
-    def get_tv_info(self, tv_id):
-        details = api.get_tv(tv_id, append_to_response='external_ids')
+        return tv_info, season_infos, episode_infos
 
-        info = {
-            'id': details['id'],
-            'imdb_id': details['external_ids']['imdb_id'],
-            'title': details['original_name'],
-            'image_path': details['poster_path'],
-            'description': details['overview'],
-            'status': details['status'],
-            'first_air_date': details['first_air_date'],
-            'last_air_date': details['last_air_date'],
-            'popularity': details['popularity'],
-            'vote_average': details['vote_average'],
-            'vote_count': details['vote_count']
-        }
+    def search(self, query):
+        methods = [(self._get_movie_info, api.search_movie), (self._get_tv_info, api.search_tv)]
 
-        return info, [entry['season_number'] for entry in details['seasons']]
-    
-    def get_season_info(self, tv_id, season_number):
-        details = api.get_season(tv_id, season_number)
-
-        info = {
-            'id': details['id'],
-            'title': details['name'],
-            'image_path': details['poster_path'],
-            'description': details['overview'],
-            'air_date': details['air_date']
-        }
-
-        return info, [entry['episode_number'] for entry in details['episodes']]
-    
-    def get_episode_info(self, tv_id, season_number, episode_number):
-        details = api.get_episode(tv_id, season_number, episode_number, append_to_response='external_ids')
-
-        info = {
-            'id': details['id'],
-            'imdb_id': details['external_ids']['imdb_id'],
-            'title': details['name'],
-            'image_path': details['still_path'],
-            'description': details['overview'],
-            'air_date': details['air_date'],
-            'vote_average': details['vote_average'],
-            'vote_count': details['vote_count']
-        }
-
-        return info
-    
-    def get_movie_full_info(self, movie_id):
-        movie_info = self.get_movie_info(movie_id)
-
-        return movie_info, self.get_images([movie_info['image_path']])
-        
-    def get_tv_full_info(self, tv_id):
-        season_infos = []
-        episode_infos = []
-        image_paths = []
-
-        tv_info, season_numbers = self.get_tv_info(tv_id)
-        image_paths.append(tv_info['image_path'])
-
-        for season_number in season_numbers:
-            season_info, episode_numbers = self.get_season_info(tv_id, season_number)
-
-            season_info['tv_id'] = tv_id
-            season_info['order'] = season_number
-            season_infos.append(season_info)
-            image_paths.append(season_info['image_path'])
-
-            for episode_number in episode_numbers:
-                episode_info = self.get_episode_info(tv_id, season_number, episode_number)
-
-                episode_info['season_id'] = season_info['id']
-                episode_info['order'] = episode_number
-                episode_infos.append(episode_info)
-                image_paths.append(episode_info['image_path'])
-
-        return tv_info, season_infos, episode_infos, self.get_images(image_paths)
-
-    def search_movie(self, query):
-        infos = []
-
-        for details in self.get_all_pages(api.search_movie, query=query):
-            info = {
-                'id': details['id'],
-                'title': details['original_title'],
-                'image_path': details['poster_path'],
-                'description': details['overview'],
-                'release_date': details['release_date'],
-                'popularity': details['popularity'],
-                'vote_average': details['vote_average'],
-                'vote_count': details['vote_count']
-            }
-
-            infos.append(info)
-
-        return infos
-
-    def search_tv(self, query):
-        infos = []
-
-        for details in self.get_all_pages(api.search_tv, query=query):
-            info = {
-                'id': details['id'],
-                'title': details['original_name'],
-                'image_path': details['poster_path'],
-                'description': details['overview'],
-                'first_air_date': details['first_air_date'],
-                'popularity': details['popularity'],
-                'vote_average': details['vote_average'],
-                'vote_count': details['vote_count']
-            }
-
-            infos.append(info)
-
-        return infos
-
-    def search_full(self, query):
-        movie_results = self.search_movie(query)
-        tv_results = self.search_tv(query)
-        image_paths = [result['image_path'] for result in movie_results + tv_results]
-
-        return movie_results, tv_results, self.get_images(image_paths)
+        return [[m1(data, 'search') for data in self._get_all_pages(m2, query=query)] for m1, m2 in methods]
