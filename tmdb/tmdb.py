@@ -113,13 +113,7 @@ class TMDb:
         return results
 
     def get_images(self, image_paths):
-        images = {}
-
-        for image_path in image_paths:
-            if image_path:
-                images[image_path] = api.get_image(self.IMG_BASE_URL, self.IMG_SIZE, image_path)
-
-        return images
+        return {image_path:api.get_image(self.IMG_BASE_URL, self.IMG_SIZE, image_path) for image_path in image_paths if image_path}
 
     def get_genres(self):
         methods = [api.get_genre_movie_list, api.get_genre_tv_list]
