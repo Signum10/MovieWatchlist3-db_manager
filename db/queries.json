@@ -1,0 +1,5 @@
+{
+    "test": "SELECT * FROM tmdb.movie;",
+    "test1": "SELECT VERSION()",
+    "test2": "INSERT INTO tmdb.group (title, description) VALUES (%s, %s);"
+}
